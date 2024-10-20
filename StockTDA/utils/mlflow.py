@@ -61,8 +61,8 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
             mlflow.log_param(param, value)
 
 
-        joblib.dump(result_df,f'temp_log/{name}')
-        mlflow.log_artifact(f'temp_log/{name}')
+        joblib.dump(result_df,os.path.join(config.temp_file_path,name))
+        mlflow.log_artifact(os.path.join(config.temp_file_path,name))
         current_code = inspect.getsource(model_obj.__class__)
         with open(os.path.join(config.temp_file_path,"experiment_code.py"), "w") as f:
             f.write(current_code)
@@ -73,12 +73,26 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
             f.write(TDA_code)
         mlflow.log_artifact(os.path.join(config.temp_file_path,"TDA_code.py"))
 
-def ui():
-    path = config.mlflow_path.replace("\\","/")
+# def ui():
+#     path = config.mlflow_path.replace("\\","/")
     
-    mlflow_path = "file:///"+path
-    command = f'mlflow ui --backend-store-uri {mlflow_path} --host 127.0.0.1 --port 5002'
-    logging.log(logging.INFO,f'{command}')
+#     mlflow_path = "file:///"+path
+#     command = f'mlflow ui --backend-store-uri {mlflow_path} --host 127.0.0.1 --port 5002'
+#     logging.log(logging.INFO,f'{command}')
+#     subprocess.Popen(command, shell=True)
+#     time.sleep(5)  
+#     webbrowser.open('http://127.0.0.1:5002')
+
+
+def ui():
+    # 使用 os.path.abspath 获取路径的绝对路径
+    path = os.path.abspath(config.mlflow_path).replace("\\", "/")
+    
+    mlflow_path = f"file:///{path}"
+    command = f'mlflow ui --backend-store-uri "{mlflow_path}" --host 127.0.0.1 --port 5003'
+    logging.log(logging.INFO, f'Command to run: {command}')
+    
+    # 使用 Popen 启动命令
     subprocess.Popen(command, shell=True)
     time.sleep(5)  
-    webbrowser.open('http://127.0.0.1:5002')
+    webbrowser.open('http://127.0.0.1:5003')

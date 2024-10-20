@@ -13,7 +13,7 @@ class StockTDAClassificationEvaluator():
     def __init__(self, TDAModel : StockTDAFrame, ClassificationModel : BinaryClassificationModel):
         self.TDAModel = TDAModel
         self.ClassificationModel = ClassificationModel
-        self.TDAModel.all_Features()
+
     
     @property
     def features_combination(self):
