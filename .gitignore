@@ -9,7 +9,12 @@ __pycache__/
 
 .git/
 !data/readme.md
-data/**
+data/calendar
+data/factor
+data/index
+data/info
+data/mlruns
+data/temp
 
 !data/
 
