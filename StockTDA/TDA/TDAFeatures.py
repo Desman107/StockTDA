@@ -24,6 +24,7 @@ def betti_sequence(persistence : List[Tuple[float, float]]):
     Returns:
     List or np.ndarray: The Betti number sequence over the given filtration.
     """
+    
     persistence=np.array(persistence) 
     idx = 0  
     a,low = [],[]
@@ -84,13 +85,24 @@ def betti_sequence(persistence : List[Tuple[float, float]]):
 
 def persistent_entropy(persistence_list : List[Tuple[float, float]]):
     """
-    计算持续熵
+    Compute the persistent entropy of a persistence diagram.
+
+    Parameters:
+    persistence_list: List[Tuple[float, float]]
+        A list of tuples representing the birth and death times of topological features
+        from a persistence diagram, where each tuple is (birth, death).
+
+    Returns:
+    float
+        The persistent entropy value, which quantifies the distribution of lifetimes
+        of topological features in the persistence diagram. This value provides a measure
+        of the complexity of the underlying data by evaluating the spread of feature lifetimes.
     """
 
     life_time = np.array(persistence_list)
     l = life_time[:,1] - life_time[:,0]
     p = l / np.sum(l)
-    return -np.sum(l*np.log(l))
+    return -np.sum(p*np.log(p))
 
 
 
