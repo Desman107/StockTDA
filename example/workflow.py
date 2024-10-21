@@ -1,6 +1,6 @@
 from StockTDA.model import TDALSTM, TDALightGBM, TDAXGBoost, TDASVM
 from StockTDA.model.BinaryClassification import BinaryClassificationModel
-from StockTDA.TDA import StockTDAConstituentCloud, StockTDAReturnSeriesCloud
+from StockTDA.TDA import StockTDAConstituentCloud, StockTDAReturnSeriesCloud, StockTDACorrMDSCloud
 from StockTDA.TDA.TDAFrame import StockTDAFrame
 
 from StockTDA.evluate.evaluator import StockTDAClassificationEvaluator
@@ -24,17 +24,23 @@ ClassificationModel2 = TDALightGBM()
 ClassificationModel3 = TDALSTM()
 ClassificationModel4 = TDASVM()
 
-TDAModel1 = StockTDAReturnSeriesCloud()
+TDAModel1 = StockTDACorrMDSCloud()
 TDAModel1.all_Features()
 
-TDAModel2 = StockTDAConstituentCloud()
+TDAModel2 = StockTDAReturnSeriesCloud()
 TDAModel2.all_Features()
+
+TDAModel3 = StockTDAConstituentCloud()
+TDAModel3.all_Features()
+
+
 
 
 for pair in cartesian_product(
         [
             TDAModel1,
             TDAModel2,
+            TDAModel3,
         ], 
         [
             ClassificationModel1,
