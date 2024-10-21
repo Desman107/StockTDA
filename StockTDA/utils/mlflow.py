@@ -49,7 +49,7 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
     mlflow.set_tracking_uri(mlflow_path)
     mlflow.set_experiment("TDA")
 
-    with mlflow.start_run(run_name=f'{name}|{model}&{cloud_type}'):
+    with mlflow.start_run(run_name=f'{model}&{cloud_type}|{name}'):
 
         mlflow.log_param("model_name", model)
         mlflow.log_param('cloud_type',cloud_type)
