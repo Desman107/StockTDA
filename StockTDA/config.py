@@ -8,15 +8,27 @@
 # Description: config file
 """
 import os
+from typing import Iterator
+
 
 index_code = '000300'
 start_date = '2016-01-01'
 end_date = '2024-08-29'
-date_range = []
-for year in range(2018, 2025):
-    for month in range(1, 13):
-        date_range.append(f'{year}-{str(month).zfill(2)}-01')
-date_range = date_range[:-7]
+
+
+
+def date_range_generator(start_year: int, end_year: int) -> Iterator[str]:
+    for year in range(start_year, end_year + 1):
+        # Skip the last 7 months of the final year (2024)
+        if year == end_year:
+            for month in range(1, 6):  # Only generate from January to May for the final year
+                yield f'{year}-{str(month).zfill(2)}-01'
+        else:
+            for month in range(1, 13):
+                yield f'{year}-{str(month).zfill(2)}-01'
+
+# Use the generator directly without slicing
+date_range = list(date_range_generator(2018, 2024))
 
 
 
