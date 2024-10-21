@@ -24,7 +24,7 @@ def betti_sequence(persistence : List[Tuple[float, float]]):
     Returns:
     List or np.ndarray: The Betti number sequence over the given filtration.
     """
-    
+
     persistence=np.array(persistence) 
     idx = 0  
     a,low = [],[]
@@ -118,41 +118,74 @@ def landscape(persistence : List[Tuple[float, float]]) -> np.ndarray:
     np.ndarray: The integral of the persistence landscape for each layer.
     """
 
+    mp=dict()
+    idx=0 
+    low=sorted(i[1] for i in persistence) 
+    persistence.sort()
+    mp[-1e18]=1 
+    idx=1 
+    for i in low:
+        mp[i]=idx+1
+        idx+=1 
+    mp[1e18]=idx+1
+    idx+=1 
+    b=[]
+    for i in range(len(persistence)): 
+        for j in range(i+1,len(persistence)): 
+            if persistence[i][1] > persistence[j][0]: 
+                b.append((persistence[j][0], persistence[i][1])) 
+            else: break 
+    persistence.extend(b) 
+    persistence.sort() 
+    tl,tr,tv=[0 for i in range(4*(idx+10))],[0 for i in range(4*(idx+10))],[0 for i in range(4*(idx+10))]
+    def push_up(u): 
+        tv[u]=max(tv[u*2],tv[u*2+1]) 
+    def build(u,l,r):
+        tl[u],tr[u],tv[u]=l,r,0
+        if l==r: return 
+        mid=(l+r)//2 
+        build(u*2,l,mid) 
+        build(u*2+1,mid+1,r) 
+    def change(u,p,v): 
+        if tl[u]==tr[u] and tl[u]==p:
+            tv[u]=v 
+            return 
+        mid = (tl[u]+tr[u])//2 
+        if p<=mid: change(u*2,p,v) 
+        else: change(u*2+1,p,v) 
+        push_up(u)
+    def query(u,l,r):
+        if tl[u]>=l and tr[u]<=r:
+            return tv[u] 
+        mx = 0
+        mid = (tl[u]+tr[u])//2 
+        if l<=mid:
+            mx=max(mx,query(u*2,l,r)) 
+        if r>mid:
+            mx=max(mx,query(u*2+1,l,r)) 
+        # print(mx) 
+        return mx 
     def cal(l:float,r:float):
         if l>r: return 0.0
         le = r - l  
         # print(le*le/4) 
         return le*le/4.0
-    persistence = np.array(persistence)
-    a = []
-    for i in persistence:
-        a.append((float(i[0]),float(i[1])))  
-    a=sorted(a) 
-    un = [] 
-    for i in range(len(a)): 
-        for j in range(i+1,len(a)): 
-            if a[i][1] >= a[j][0]: 
-                un.append((a[j][0],a[i][1])) 
-            else: break 
-    for i in un: a.append(i) 
-    a=sorted(a)  
-
-    ans = [] 
-    while len(a) > 0: 
-        b,u = [],[]
-        i = 0 
-        while i < len(a): 
-            j = i 
-            while j + 1 < len(a) and a[j+1][1] <= a[i][1]: 
-                j += 1
-                u.append(a[j])  
-            b.append(a[i])
-            i = j + 1
-        s,now = 0,0 
-        for i in range(len(b)): 
-            s+=cal(b[i][0],b[i][1])  
-            if i > 0: 
-                s-=cal(b[i][0],b[i-1][1]) 
-        ans.append(s) 
-        a=u
+    build(1,1,idx)
+    coach = [[] for i in range(len(persistence))]
+    id=[0 for i in range(len(persistence))] 
+    for i in range(len(persistence)): 
+        mx=query(1,mp[persistence[i][1]],idx) 
+        id[i]=mx+1 
+        change(1,mp[persistence[i][1]],id[i])
+        coach[id[i]].append((persistence[i][0],persistence[i][1])) 
+    ans = []
+    for i in coach:
+        if len(i)==0: continue 
+        # print(i)
+        s = 0 
+        for j in range(len(i)): 
+            s+=cal(i[j][0],i[j][1])  
+            if j > 0: 
+                s-=cal(i[j][0],i[j-1][1])
+        ans.append(s)  
     return np.array(ans )
