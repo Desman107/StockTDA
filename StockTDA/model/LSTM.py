@@ -34,14 +34,19 @@ class TDALSTM(BinaryClassificationModel):
 
 
     def run_classification(self, X_train, y_train : pd.DataFrame, X_test, y_test: pd.DataFrame):
-        X_train = np.expand_dims(X_train, axis=1)
-        X_test = np.expand_dims(X_test, axis=1)
+        # 确保 X_train 和 X_test 的维度符合 LSTM 期望的格式 (batch_size, sequence_length, input_size)
+        X_train = np.expand_dims(X_train, axis=1)  # 调整为 (batch_size, 1, input_size)
+        X_test = np.expand_dims(X_test, axis=1)  # 调整为 (batch_size, 1, input_size)
+
+        # 将标签转换为 numpy 数组并压平
         y_train = y_train.values.flatten()
         y_test = y_test.values.flatten()
-        X_train = np.expand_dims(X_train, axis=1)
-        X_test = np.expand_dims(X_test, axis=1)
+
+        # 初始化 LSTM 模型
         input_size = X_train.shape[2]
-        model = LSTMClassifier(input_size, self.params['hidden_size'], self.params['num_layers'], self.params['output_size'],self.device)
+        model = LSTMClassifier(input_size, self.params['hidden_size'], self.params['num_layers'], self.params['output_size'], self.device)
+
+        # 调用训练函数
         y_pred = train_lstm_model(model, X_train, y_train, X_test, y_test, self.device)
         return y_pred
    
