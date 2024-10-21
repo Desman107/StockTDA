@@ -1,5 +1,7 @@
 from StockTDA.TDA.TDAFrame import StockTDAFrame
 from StockTDA import config
+from StockTDA.data.data_prepare import INFO
+from StockTDA.utils import ygo
 
 import os
 import joblib
@@ -26,7 +28,8 @@ class StockTDACorrMDSCloud(StockTDAFrame):
             A deque (double-ended queue) to store a sliding window of factor data for the most recent `window_size` days.
         """
         self.window_size = window_size
-        self.sliding_window = deque(maxlen=window_size)
+        # self.sliding_window = deque(maxlen=window_size)
+        self.prepare_data()
         super().__init__()
     
     
@@ -68,23 +71,12 @@ class StockTDACorrMDSCloud(StockTDAFrame):
         |   1           |   (0.5421, 0.6529)|
         -------------------------------------
         """
-        # Step 1: Load factor data for the given date
-        df = joblib.load(os.path.join(config.factor_data_save_path, date))
-        df['date'] = date
-        df = df[['past_1D','date']].copy()
 
-        # Step 2: Add the data to the sliding window
-        self.sliding_window.append(df)
-
-        # Step 3: If the sliding window is not yet full, return None
-        if len(self.sliding_window) < self.window_size:
-            return None
-
-        # Step 4: Concatenate all data in the sliding window into a single DataFrame
-        win_df = pd.concat(self.sliding_window)
-        win_df = pd.concat(self.sliding_window)
-        win_df.reset_index(inplace=True)
-        win_df.set_index(['date','SecuCode'],inplace=True)
+        date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
+        if date_loc < self.window_size:return
+        loc_20 = date_loc - self.window_size
+        date_20 = INFO.TradingDay[loc_20]
+        win_df = self.csi300.loc[date_20:date]
         win_df = win_df.unstack()
 
         # Cleaning data by removing columns with more than 30% missing values
@@ -94,7 +86,7 @@ class StockTDACorrMDSCloud(StockTDAFrame):
         distance_matrix = np.sqrt(2 * (1 - Cij))
 
         # Step 5: Compute the correlation matrix and convert it into a distance matrix
-        mds = MDS(n_components=4, dissimilarity="precomputed", random_state=42)
+        mds = MDS(n_components=4, dissimilarity="precomputed", random_state=42, normalized_stress='auto')
 
         # Step 7: Construct an Alpha Complex from the MDS coordinates and compute the persistence diagram
         coords = mds.fit_transform(distance_matrix)
@@ -106,3 +98,20 @@ class StockTDACorrMDSCloud(StockTDAFrame):
         persistence_df = pd.DataFrame(persistence, columns=['dimension', 'persistence'])
 
         return persistence_df
+    
+
+    def prepare_data(self):
+        def load(date):
+            path = os.path.join(config.factor_data_save_path, date)
+            df = joblib.load(path)
+            df['date'] = date
+            return df[['past_1D','date']]
+        with ygo.pool() as pool:
+            for date in INFO.TradingDay:
+                pool.submit(load,date)
+            result = pool.do()
+        result_df : pd.DataFrame = pd.concat(result)
+        result_df.reset_index(inplace=True)
+        result_df.set_index(['date','SecuCode'],inplace=True)
+        result_df.sort_index(inplace=True)
+        self.csi300 = result_df
