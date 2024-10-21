@@ -16,12 +16,13 @@ import lightgbm as lgb
 
 
 class TDALightGBM(BinaryClassificationModel):
-    def __init__(self, objective = 'binary:logistic', learning_rate = 0.3, eval_metric = 'logloss'):
+    def __init__(self, objective = 'binary', learning_rate = 0.3, eval_metric = 'binary_logloss'):
         super().__init__()
         self.params = {
-            'objective': objective,  
+            'objective': objective,  # 二分类问题
             'learning_rate': learning_rate,
-            'eval_metric': eval_metric
+            'metric': eval_metric,
+            'verbosity': -1  # 设置日志级别，-1表示不显示任何信息
         }
 
 
@@ -32,7 +33,7 @@ class TDALightGBM(BinaryClassificationModel):
 
         # Training the model
         num_rounds = 1000
-        bst = lgb.train(self.params, dtrain, num_boost_round=num_rounds)
+        bst = lgb.train(self.params, dtrain, num_boost_round=num_rounds, valid_sets=[dtest], verbose_eval=False)
 
         # Prediction
         y_pred = bst.predict(X_test)
