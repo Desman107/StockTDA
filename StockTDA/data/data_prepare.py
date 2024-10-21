@@ -22,7 +22,7 @@ from StockTDA.utils import ygo
 class Info_data():
     def __init__(self):
         TradingDay = joblib.load(os.path.join(config.data_path,'calendar','BIG_TABLE')) # load Trading day calendar
-        TradingDay = TradingDay[TradingDay['IfTradingDay'] == 1].index
+        TradingDay = np.array(TradingDay[TradingDay['IfTradingDay'] == 1].index)
         self.TradingDay = TradingDay[(TradingDay > config.start_date) & (TradingDay < config.end_date)] # set date range
 
         self.StockMain = joblib.load(os.path.join(config.data_path,'info','STOCK-MAIN'))
