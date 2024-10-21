@@ -21,7 +21,7 @@ import pandas as pd
 
 class TDALSTM(BinaryClassificationModel):
     """
-    This is a demo model which is very tiny
+    This is a demo model which is very tiny, you can replace it into your own LSTM model
     """
     def __init__(self, hidden_size = 50, num_layers = 1, output_size = 1):
         super().__init__()
@@ -41,7 +41,7 @@ class TDALSTM(BinaryClassificationModel):
         X_train = np.expand_dims(X_train, axis=1)
         X_test = np.expand_dims(X_test, axis=1)
         input_size = X_train.shape[2]
-        model = LSTMClassifier(input_size, self.params['hidden_size'], self.params['num_layers'], self.params['output_size'])
+        model = LSTMClassifier(input_size, self.params['hidden_size'], self.params['num_layers'], self.params['output_size'],self.device)
         y_pred = train_lstm_model(model, X_train, y_train, X_test, y_test, self.device)
         return y_pred
    
@@ -83,9 +83,6 @@ def train_lstm_model(model, X_train, y_train, X_test, y_test, device, num_epochs
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
-        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
-
 
     model.eval()
     with torch.no_grad():
