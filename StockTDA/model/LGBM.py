@@ -33,7 +33,7 @@ class TDALightGBM(BinaryClassificationModel):
 
         # Training the model
         num_rounds = 1000
-        bst = lgb.train(self.params, dtrain, num_boost_round=num_rounds, valid_sets=[dtest], verbose_eval=False)
+        bst = lgb.train(self.params, dtrain, num_boost_round=num_rounds, valid_sets=[dtest])
 
         # Prediction
         y_pred = bst.predict(X_test)
