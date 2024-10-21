@@ -123,7 +123,7 @@ class StockTDAFrame(metaclass=ABCMeta):
         with ygo.pool() as paral:
             for date in INFO.TradingDay:
                 paral.submit(self.compute_persistence_and_features,date)
-            result = paral.do(description='Computing TDA features')
+            result = paral.do(description=f'Computing TDA features, TDAModel = {self.__class__.__name__}')
         # result = []
         # for date in tqdm(INFO.TradingDay):
         #     result.append(self.compute_persistence_and_features(date))
