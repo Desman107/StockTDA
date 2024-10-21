@@ -102,7 +102,7 @@ def persistent_entropy(persistence_list : List[Tuple[float, float]]):
     life_time = np.array(persistence_list)
     l = life_time[:,1] - life_time[:,0]
     p = l / np.sum(l)
-    return -np.sum(p*np.log(p))
+    return -np.sum(l*np.log(l))
 
 
 
