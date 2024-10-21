@@ -9,6 +9,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import mlflow
 import joblib
 from typing import List
+import platform
+
 
 from StockTDA import config
 from StockTDA.model.BinaryClassification import BinaryClassificationModel
@@ -47,7 +49,7 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
     mlflow.set_tracking_uri(mlflow_path)
     mlflow.set_experiment("TDA")
 
-    with mlflow.start_run(run_name=f'{name}|{model}'):
+    with mlflow.start_run(run_name=f'{name}|{model}&{cloud_type}'):
 
         mlflow.log_param("model_name", model)
         mlflow.log_param('cloud_type',cloud_type)
@@ -84,7 +86,51 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
 #     webbrowser.open('http://127.0.0.1:5002')
 
 
+
+
+def clear_port(port):
+    """清除指定端口的占用"""
+    if platform.system() == "Windows":
+        # 对于 Windows 系统，使用 netstat 和 taskkill
+        find_port_command = f'netstat -ano | findstr :{port}'
+        find_process = subprocess.Popen(find_port_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, _ = find_process.communicate()
+        
+        if out:
+            # 提取进程 ID (PID)
+            lines = out.decode().splitlines()
+            for line in lines:
+                parts = line.split()
+                pid = parts[-1]
+                # 杀死进程
+                kill_command = f'taskkill /PID {pid} /F'
+                subprocess.call(kill_command, shell=True)
+            logging.info(f"Cleared port {port} on Windows")
+    else:
+        # 对于 macOS 和 Linux，使用 lsof 和 kill
+        find_port_command = f'lsof -i:{port}'
+        find_process = subprocess.Popen(find_port_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, _ = find_process.communicate()
+
+        if out:
+            # 提取进程 ID (PID)
+            lines = out.decode().splitlines()[1:]  # 跳过表头
+            for line in lines:
+                parts = line.split()
+                pid = parts[1]
+                # 杀死进程
+                kill_command = f'kill -9 {pid}'
+                subprocess.call(kill_command, shell=True)
+            logging.info(f"Cleared port {port} on Unix-like system")
+
+
+
+
+
 def ui():
+    clear_port(5003)
+
+
     # 使用 os.path.abspath 获取路径的绝对路径
     path = os.path.abspath(config.mlflow_path).replace("\\", "/")
     
