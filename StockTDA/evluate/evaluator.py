@@ -23,17 +23,25 @@ class StockTDAClassificationEvaluator():
                 yield list(combo)
 
     def evaluateTDAFeatures(self, features: List[str]):
+
+        # predict 
         result_df = self.ClassificationModel.rolling_predict(self.TDAModel.all_df, features)
+
+        # evaluate predict result
         result_df['preds'] = (result_df['pred'] > 0.5).astype(int)
         result_df['label'] = (result_df['return_t+1'] > 0).astype(int)
         report = classification_report(result_df['label'], result_df['preds'])
         logging.log(logging.INFO,f'\nClassification Report:\n{report}')
+        
+        # construct long-short strategy
         result_df['long_short'] = 0
         result_df['long_short'][result_df['preds'] == 1] = 1
         result_df['long_short'][result_df['preds'] == 0] = -1
         result_df['return'] = result_df['long_short'] * result_df['return_t+1']
         result_df.sort_index(inplace=True)
         result_df.index = pd.to_datetime(result_df.index)
+
+        # record result by mlflow
         record(result_df,self.ClassificationModel,self.TDAModel,features)
     
     def evaluate_all_combinations(self):
