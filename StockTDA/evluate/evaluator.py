@@ -35,8 +35,8 @@ class StockTDAClassificationEvaluator():
         
         # construct long-short strategy
         result_df['long_short'] = 0
-        result_df['long_short'][result_df['preds'] == 1] = 1
-        result_df['long_short'][result_df['preds'] == 0] = -1
+        result_df.loc[result_df['preds'] == 1, 'long_short'] = 1
+        result_df.loc[result_df['preds'] == 0, 'long_short'] = -1
         result_df['return'] = result_df['long_short'] * result_df['return_t+1']
         result_df.sort_index(inplace=True)
         result_df.index = pd.to_datetime(result_df.index)
