@@ -21,6 +21,8 @@ class TDASVM(BinaryClassificationModel):
         
 
     def run_classification(self, X_train, y_train, X_test, y_test):
+        y_train = y_train.values.ravel()  
+        y_test = y_test.values.ravel()
         model = Pipeline([
             ('scaler', StandardScaler()),  
             ('svm', SVC(kernel=self.kernel, C=self.C, gamma=self.gamma, probability=True))
