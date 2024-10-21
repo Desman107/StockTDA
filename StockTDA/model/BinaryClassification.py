@@ -51,14 +51,14 @@ class BinaryClassificationModel(metaclass=ABCMeta):
         date_iter = iter(config.date_range)
         prev_date = next(date_iter)  # Initialize the first date
         
-        for next_date in date_iter:
+        for next_date in tqdm(date_iter, total=len(config.date_range) - 1, desc=f"Rolling Predictions, model:{self.__class__.__name__}"):
             # get train data
             train_df = all_df[config.start_date:prev_date]
             X_train = self.get_feature(train_df, features)
             y_train = (train_df[['return_t+1']] > 0).astype(int)
 
             # get test data
-            test_df = all_df[prev_date:next_date]
+            test_df = all_df[prev_date:next_date].copy() 
             X_test = self.get_feature(test_df, features)
             y_test = (test_df[['return_t+1']] > 0).astype(int)
 
@@ -66,7 +66,7 @@ class BinaryClassificationModel(metaclass=ABCMeta):
             y_pred = self.run_classification(X_train, y_train, X_test, y_test)
 
             # save predict result
-            test_df['pred'] = y_pred
+            test_df.loc[:, 'pred'] = y_pred
             pred_list.append(test_df)
 
             # Update prev_date to the current next_date for the next iteration
