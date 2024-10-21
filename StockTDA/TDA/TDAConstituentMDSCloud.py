@@ -77,7 +77,8 @@ class StockTDACorrMDSCloud(StockTDAFrame):
         self.sliding_window.append(df)
 
         # Step 3: If the sliding window is not yet full, return None
-        if len(self.sliding_window < self.window_size): return
+        if len(self.sliding_window) < self.window_size:
+            return None
 
         # Step 4: Concatenate all data in the sliding window into a single DataFrame
         win_df = pd.concat(self.sliding_window)
