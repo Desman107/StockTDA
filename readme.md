@@ -10,5 +10,5 @@ An end to end framework for financial trend classification applying Topological 
 
 ## Results
 We constructed a decision tree using the Topological Data Analysis (TDA) workflow and visualized the corresponding results. The different combinations of point clouds, topological features, and classification models showed significant variation in performance.
-![image]([docs/treemap_results.png](https://github.com/Desman107/Desman107/blob/main/img/newplot%20(4).png))
+![image](https://github.com/Desman107/Desman107/blob/main/img/newplot1.png)
 From the root node to leaf node there are three layers representing point cloud construction method decision, topology features combination decision and classification 
