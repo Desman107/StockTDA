@@ -11,3 +11,4 @@ from .XGB import TDAXGBoost
 from .LGBM import TDALightGBM
 from .LSTM import TDALSTM
 from .SVM import TDASVM
+from .RF import TDARandomForest
