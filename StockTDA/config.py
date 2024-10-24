@@ -10,13 +10,11 @@
 import os
 from typing import Iterator
 
-
+#############################################################################
+# config about date
 index_code = '000300'
-start_date = '2016-01-01'
+start_date = '2015-06-01'
 end_date = '2024-08-29'
-
-
-
 def date_range_generator(start_year: int, end_year: int) -> Iterator[str]:
     for year in range(start_year, end_year + 1):
         # Skip the last 7 months of the final year (2024)
@@ -29,9 +27,11 @@ def date_range_generator(start_year: int, end_year: int) -> Iterator[str]:
 
 # Use the generator directly without slicing
 date_range = list(date_range_generator(2018, 2024))
+#############################################################################
 
 
-
+#################################################################################
+# config about path 
 project_root = ''
 data_path = ''
 
@@ -52,3 +52,18 @@ if not os.path.exists(temp_save_path) : os.makedirs(temp_save_path)
 if not os.path.exists(factor_data_save_path) : os.makedirs(factor_data_save_path)
 if not os.path.exists(mlflow_path) : os.makedirs(mlflow_path)
 if not os.path.exists(temp_file_path) : os.makedirs(temp_file_path)
+
+
+#################################################################################
+
+
+
+#################################################################################
+# config about param
+max_dim = 3
+
+
+
+#################################################################################
+#################################################################################
+

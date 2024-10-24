@@ -1,6 +1,6 @@
 
 
-
+from StockTDA import config
 from .TDAFeatures import TDAFeatures 
 import numpy as np
 from abc import ABCMeta, abstractmethod
@@ -11,7 +11,7 @@ class BettiSeq(TDAFeatures):
     def __init__(self):
         super().__init__()
     
-    def compute_TDAFeatures(self, persistence : List[Tuple[float, float]]):
+    def compute_TDAFeatures(self, persistence : List[Tuple[float, float]], r , n_bins):
         """
         Compute the Betti number sequence.
         
@@ -40,8 +40,8 @@ class BettiSeq(TDAFeatures):
 
 
         l=0
-        r=a[-1][1] 
-        step=0.01*r  
+        
+        step= r / n_bins 
         
         tr = [0 for i in range(idx+3)] 
         def lowbit(x): 
@@ -78,7 +78,14 @@ class BettiSeq(TDAFeatures):
                 add(mp[a[hs][1]],1) 
             ans.append(f(zz))  
             zz+=step 
-        return np.array(ans[1:100])
+        return ans[:n_bins]
     
     def compute_TDAFeatures_all_dim(self, persistence_all_dim):
-        return super().compute_TDAFeatures_all_dim(persistence_all_dim)
+        vectoralize_features = []
+        r = max([item[1][1] for item in persistence_all_dim if ( item[1][1] != np.inf)])
+        for dim in range(config.max_dim + 1):
+            persistence = [(item[1][0], item[1][1]) for item in persistence_all_dim if (item[0] == dim and item[1][1] != np.inf)]
+            bettiseq = self.compute_TDAFeatures(persistence, r, 25)
+            for betti in bettiseq:
+                vectoralize_features.append(betti)
+        return vectoralize_features

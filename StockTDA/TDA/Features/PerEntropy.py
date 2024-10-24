@@ -1,6 +1,6 @@
 
 
-
+from StockTDA import config
 from .TDAFeatures import TDAFeatures
 from abc import ABCMeta, abstractmethod
 from typing import List, Union, Optional, Tuple, Type
@@ -32,5 +32,10 @@ class PerEntropy(TDAFeatures):
         p = l / np.sum(l)
         return -np.sum(l*np.log(l))
     
-    def compute_TDAFeatures_all_dim(self, persistence_all_dim):
-        return super().compute_TDAFeatures_all_dim(persistence_all_dim)
+    def compute_TDAFeatures_all_dim(self, persistence_all_dim  : List[Tuple[int, Tuple[float, float]]]):
+        vectoralize_features = []
+        for dim in range(config.max_dim + 1):
+            persistence = [(item[1][0], item[1][1]) for item in persistence_all_dim if (item[0] == dim and item[1][1] != np.inf)]
+            norm = self.compute_TDAFeatures(persistence)
+            vectoralize_features.append(norm)
+        return vectoralize_features

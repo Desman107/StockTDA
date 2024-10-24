@@ -13,7 +13,7 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 from typing import List, Union, Optional, Tuple, Type
 
-
+from StockTDA import config
 
 class TDAFeatures(metaclass=ABCMeta):
     def __init__(self):
@@ -23,9 +23,9 @@ class TDAFeatures(metaclass=ABCMeta):
         return self.__class__.__name__
 
     @abstractmethod
-    def compute_TDAFeatures(self, persistence : List[Tuple[float, float]]) -> np.ndarray:
+    def compute_TDAFeatures(self, persistence : List[Tuple[float, float]]) -> Union[List[float],float]:
         """
-        Compute the Betti number sequence.
+        Compute the Vectoralize TDAFeatures.
         
         Parameters:
         persistence: List of tuples representing the birth and death times of topological features 
@@ -38,10 +38,9 @@ class TDAFeatures(metaclass=ABCMeta):
         return ...
 
     @abstractmethod
-    def compute_TDAFeatures_all_dim(self, persistence_all_dim : List[Tuple[int, Tuple[float, float]]]):
-        return ...
+    def compute_TDAFeatures_all_dim(self, persistence_all_dim : List[Tuple[int, Tuple[float, float]]]) -> List[float]:...
 
-def betti_sequence(persistence : List[Tuple[float, float]]):  
+def betti_sequence(persistence : List[Tuple[float, float]],r, n_bins):  
     """
     Compute the Betti number sequence.
     

@@ -17,7 +17,7 @@ class StockTDAClassificationEvaluator():
     
     @property
     def features_combination(self):
-        features = ['betti', 'entropy', 'l2_norm']
+        features = self.TDAModel.features_list
         for r in range(1, len(features) + 1):
             for combo in combinations(features, r):
                 yield list(combo)
@@ -46,4 +46,5 @@ class StockTDAClassificationEvaluator():
     
     def evaluate_all_combinations(self):
         for feature_set in self.features_combination:
+            feature_set = [str(feature_) for feature_ in feature_set]
             self.evaluateTDAFeatures(feature_set)
