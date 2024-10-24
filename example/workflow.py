@@ -1,7 +1,7 @@
 from StockTDA.model import TDALSTM, TDALightGBM, TDAXGBoost, TDASVM
 from StockTDA.model.BinaryClassification import BinaryClassificationModel
-from StockTDA.TDA import StockTDAConstituentCloud, StockTDAReturnSeriesCloud, StockTDACorrMDSCloud
-from StockTDA.TDA.TDAFrame import StockTDAFrame
+from StockTDA.TDA.Cloud import StockTDAConstituentCloud, StockTDAReturnSeriesCloud, StockTDACorrMDSCloud
+from StockTDA.TDA.Cloud.TDACloud import StockTDACloud
 
 from StockTDA.evluate.evaluator import StockTDAClassificationEvaluator
 from StockTDA.data.data_prepare import prepare_formulaic_factor
@@ -10,9 +10,9 @@ from StockTDA.data.data_prepare import prepare_formulaic_factor
 from typing import List, Iterator, Tuple
 
 def cartesian_product(
-        list1: List[StockTDAFrame], 
+        list1: List[StockTDACloud], 
         list2: List[BinaryClassificationModel]
-    ) -> Iterator[Tuple[StockTDAFrame, BinaryClassificationModel]]:
+    ) -> Iterator[Tuple[StockTDACloud, BinaryClassificationModel]]:
     for item1 in list1:
         for item2 in list2:
             yield (item1, item2)

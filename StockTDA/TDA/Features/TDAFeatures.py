@@ -9,9 +9,37 @@
 """
 
 import numpy as np
-from typing import List, Tuple
+
+from abc import ABCMeta, abstractmethod
+from typing import List, Union, Optional, Tuple, Type
 
 
+
+class TDAFeatures(metaclass=ABCMeta):
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return self.__class__.__name__
+
+    @abstractmethod
+    def compute_TDAFeatures(self, persistence : List[Tuple[float, float]]) -> np.ndarray:
+        """
+        Compute the Betti number sequence.
+        
+        Parameters:
+        persistence: List of tuples representing the birth and death times of topological features 
+        (typically from a persistence diagram).
+
+
+        Returns:
+        Vectoralize TDAFeatures
+        """
+        return ...
+
+    @abstractmethod
+    def compute_TDAFeatures_all_dim(self, persistence_all_dim : List[Tuple[int, Tuple[float, float]]]):
+        return ...
 
 def betti_sequence(persistence : List[Tuple[float, float]]):  
     """
@@ -80,7 +108,7 @@ def betti_sequence(persistence : List[Tuple[float, float]]):
             add(mp[a[hs][1]],1) 
         ans.append(f(zz))  
         zz+=step 
-    return ans[2:100]
+    return np.array(ans[1:100])
 
 
 def persistent_entropy(persistence_list : List[Tuple[float, float]]):

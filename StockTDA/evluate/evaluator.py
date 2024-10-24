@@ -1,6 +1,6 @@
 
 from StockTDA.model.BinaryClassification import BinaryClassificationModel
-from StockTDA.TDA.TDAFrame import StockTDAFrame
+from StockTDA.TDA.Cloud.TDACloud import StockTDACloud
 from StockTDA.utils.mlflow import record
 
 from typing import List, Union, Optional, Tuple, Type
@@ -10,7 +10,7 @@ import logging
 from sklearn.metrics import classification_report
 
 class StockTDAClassificationEvaluator():
-    def __init__(self, TDAModel : StockTDAFrame, ClassificationModel : BinaryClassificationModel):
+    def __init__(self, TDAModel : StockTDACloud, ClassificationModel : BinaryClassificationModel):
         self.TDAModel = TDAModel
         self.ClassificationModel = ClassificationModel
 

@@ -14,7 +14,7 @@ import platform
 
 from StockTDA import config
 from StockTDA.model.BinaryClassification import BinaryClassificationModel
-from StockTDA.TDA.TDAFrame import StockTDAFrame
+from StockTDA.TDA.Cloud import StockTDAFrame
 
 
 def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_obj : StockTDAFrame,features : List[str]):

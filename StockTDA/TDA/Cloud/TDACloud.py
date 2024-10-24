@@ -15,11 +15,11 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from StockTDA.TDA.TDAFeatures import persistent_entropy, landscape, betti_sequence
+from StockTDA.TDA.Features.TDAFeatures import persistent_entropy, landscape, betti_sequence
 from StockTDA.data.data_prepare import INFO, prepare_formulaic_factor, get_quote_df
 from StockTDA.utils import ygo
 
-class StockTDAFrame(metaclass=ABCMeta):
+class StockTDACloud(metaclass=ABCMeta):
     def __init__(self):
         # prepare_formulaic_factor()
         self.quote_df = get_quote_df()
@@ -93,8 +93,13 @@ class StockTDAFrame(metaclass=ABCMeta):
         3. Finally, the function calculates the L2-norm of the persistence landscape for dimensions 2 and 3 using 
         the `landscape()` function and computes the L2-norm of the resulting landscapes.
         """
-        persistence_list = persistence_df['persistence'].to_list()
-        betti_list = betti_sequence(persistence_list)
+        # persistence_list = persistence_df['persistence'].to_list()
+        # betti_list = betti_sequence(persistence_list)
+        for i in [0,1,2,3]:
+            persistence_list = persistence_df[persistence_df['dimension'] == i]['persistence'].to_list()
+            betti_list = betti_sequence(persistence_list)
+            
+            betti_list = betti_list * 2 ** ((i-1)*2)
 
         entropy_list = []
         for i in range(1,4):
