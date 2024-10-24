@@ -14,10 +14,11 @@ import platform
 
 from StockTDA import config
 from StockTDA.model.BinaryClassification import BinaryClassificationModel
-from StockTDA.TDA.TDAFrame import StockTDAFrame
+from StockTDA.TDA.Cloud.TDACloud import StockTDACloud
 
 
-def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_obj : StockTDAFrame,features : List[str]):
+def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_obj : StockTDACloud,features : List[str]):
+    all_features_list = TDA_obj.features_list
     name  = '&'.join(features)
     model = model_obj.__class__.__name__
     cloud_type = TDA_obj.__class__.__name__
@@ -38,11 +39,8 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
         'cum_return': result_df['return'].cumsum().iloc[-1],
         'max_drawdown': (((result_df['return'] + 1).cumprod().sub((result_df['return'] + 1).cumprod().cummax())) / (result_df['return'] + 1).cumprod().cummax()).min()
     }
-    param_dict = {
-        'betti' : 0,
-        'entropy' : 0,
-        'l2_norm' : 0
-    }
+    param_dict = { str(feature) : 0 for feature in all_features_list}
+
     for feature in features:
         param_dict[feature] = 1
 
@@ -74,16 +72,6 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
         with open(os.path.join(config.temp_file_path,"TDA_code.py"), "w") as f:
             f.write(TDA_code)
         mlflow.log_artifact(os.path.join(config.temp_file_path,"TDA_code.py"))
-
-# def ui():
-#     path = config.mlflow_path.replace("\\","/")
-    
-#     mlflow_path = "file:///"+path
-#     command = f'mlflow ui --backend-store-uri {mlflow_path} --host 127.0.0.1 --port 5002'
-#     logging.log(logging.INFO,f'{command}')
-#     subprocess.Popen(command, shell=True)
-#     time.sleep(5)  
-#     webbrowser.open('http://127.0.0.1:5002')
 
 
 

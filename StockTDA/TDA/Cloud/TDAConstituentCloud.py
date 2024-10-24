@@ -1,5 +1,5 @@
-
-from StockTDA.TDA.TDAFrame import StockTDAFrame
+from StockTDA.TDA.Features.TDAFeatures import TDAFeatures
+from StockTDA.TDA.Cloud.TDACloud import StockTDACloud
 from StockTDA import config
 
 import os
@@ -8,18 +8,18 @@ import pandas as pd
 import gudhi as gd
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import KernelPCA
+from typing import List, Union, Optional, Tuple, Type
 
-
-class StockTDAConstituentCloud(StockTDAFrame):
-    def __init__(self):
-        super().__init__()
+class StockTDAConstituentCloud(StockTDACloud):
+    def __init__(self,features_list : List[TDAFeatures]):
+        super().__init__(features_list)
     
     
     def compute_persistence(self, date: str) -> pd.DataFrame:
         """
         Computes the persistence diagram for a given date based on stock constituent factor data.
 
-        This method inherits from the abstract method `compute_persistence` defined in the parent class `StockTDAFrame`.
+        This method inherits from the abstract method `compute_persistence` defined in the parent class `StockTDACloud`.
         It performs the following steps:
         
         1. Load stock constituent factor data for the specified date.
@@ -35,20 +35,25 @@ class StockTDAConstituentCloud(StockTDAFrame):
             The date for which the persistence diagram is being computed. The date is typically in 'YYYY-MM-DD' format.
         
         Returns:
-        pd.DataFrame
-            A DataFrame containing the persistence diagram with columns:
-            - 'dimension': The dimension of the topological feature.
-            - 'persistence': The birth and death times of each topological feature, stored as tuples (birth, death).
+        List
+            A list representing the persistence diagram of topological features.
+            
+            Each entry in the list corresponds to a topological feature and contains:
+            - 'dimension': The dimension of the topological feature (e.g., 0 for connected components, 1 for loops, 2 for voids, etc.).
+            - 'persistence': A tuple representing the birth and death times (birth, death) of the topological feature, which indicates when the feature appears and disappears in the filtration process.
+            
+            The persistence diagram captures the shape characteristics of the data at different scales.
+            
             Example:
-            -------------------------------------
-            |   'dimension' |   'persistence'   |
-            -------------------------------------
-            |   0           |   (0.0121, 0.2324)|
-            |   0           |   (0.0135, 0.3134)|
-            |   0           |   (0.0141, 0.3325)|
-            |   1           |   (0.0159, 0.4386)|
-            |   1           |   (0.5421, 0.6529)|
-            -------------------------------------
+            
+            [   ['dimension',  'persistence'] ]
+            [
+            [   0           ,   (0.0121, 0.2324)],  # 0D feature: connected component
+            [   0           ,   (0.0135, 0.3134)],  # 0D feature: connected component
+            [   0           ,   (0.0141, 0.3325)],  # 0D feature: connected component
+            [   1           ,   (0.0159, 0.4386)],  # 1D feature: loop
+            [   1           ,   (0.5421, 0.6529)],  # 1D feature: loop
+            ]
         """
         # Step 1: Load factor data for the given date
         df = joblib.load(os.path.join(config.factor_data_save_path, date))
@@ -70,6 +75,5 @@ class StockTDAConstituentCloud(StockTDAFrame):
         simplex_tree = alpha_complex.create_simplex_tree()
         persistence = simplex_tree.persistence()
         
-        # Step 6: Convert the persistence diagram into a DataFrame
-        persistence_df = pd.DataFrame(persistence, columns=['dimension', 'persistence'])
-        return persistence_df
+
+        return persistence

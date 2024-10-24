@@ -1,5 +1,5 @@
-
-from StockTDA.TDA.TDAFrame import StockTDAFrame
+from StockTDA.TDA.Features.TDAFeatures import TDAFeatures
+from StockTDA.TDA.Cloud.TDACloud import StockTDACloud
 from StockTDA import config
 
 import os
@@ -10,16 +10,16 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import KernelPCA
 from typing import List, Union, Optional, Tuple, Type
 
-class StockTDAReturnSeriesCloud(StockTDAFrame):
-    def __init__(self):
-        super().__init__()
+class StockTDAReturnSeriesCloud(StockTDACloud):
+    def __init__(self,features_list : List[TDAFeatures]):
+        super().__init__(features_list)
     
     
     def compute_persistence(self, date: str) -> Union[pd.DataFrame,None]:
         """
         Computes the persistence diagram for a given date based on the return series of stock constituent data.
 
-        This method overrides the abstract method `compute_persistence` defined in the parent class `StockTDAFrame`.
+        This method overrides the abstract method `compute_persistence` defined in the parent class `StockTDACloud`.
         It performs the following steps:
         
         1. Loads the most recent 120 trading days of stock return data up to the specified date from `quote_df`.
@@ -36,23 +36,25 @@ class StockTDAReturnSeriesCloud(StockTDAFrame):
             The date for which the persistence diagram is being computed. The date is typically in 'YYYY-MM-DD' format.
         
         Returns:
-        pd.DataFrame or None:
-            A DataFrame containing the persistence diagram with the following columns:
-            - 'dimension': The dimension of the topological feature.
-            - 'persistence': The birth and death times of each topological feature, stored as tuples (birth, death).
+        List
+            A list representing the persistence diagram of topological features.
             
-            If the return series data contains missing values (NaN), the function returns `None`.
-
-        Example of the returned DataFrame:
-        -------------------------------------
-        |   'dimension' |   'persistence'   |
-        -------------------------------------
-        |   0           |   (0.0121, 0.2324)|
-        |   0           |   (0.0135, 0.3134)|
-        |   0           |   (0.0141, 0.3325)|
-        |   1           |   (0.0159, 0.4386)|
-        |   1           |   (0.5421, 0.6529)|
-        -------------------------------------
+            Each entry in the list corresponds to a topological feature and contains:
+            - 'dimension': The dimension of the topological feature (e.g., 0 for connected components, 1 for loops, 2 for voids, etc.).
+            - 'persistence': A tuple representing the birth and death times (birth, death) of the topological feature, which indicates when the feature appears and disappears in the filtration process.
+            
+            The persistence diagram captures the shape characteristics of the data at different scales.
+            
+            Example:
+            
+            [   ['dimension',  'persistence'] ]
+            [
+            [   0           ,   (0.0121, 0.2324)],  # 0D feature: connected component
+            [   0           ,   (0.0135, 0.3134)],  # 0D feature: connected component
+            [   0           ,   (0.0141, 0.3325)],  # 0D feature: connected component
+            [   1           ,   (0.0159, 0.4386)],  # 1D feature: loop
+            [   1           ,   (0.5421, 0.6529)],  # 1D feature: loop
+            ]
         """
         df = self.quote_df.loc[:date].tail(120)
         df = df[['return','return_t-5','return_t-20','return_t-60']]
@@ -62,5 +64,5 @@ class StockTDAReturnSeriesCloud(StockTDAFrame):
         alpha_complex = gd.AlphaComplex(df_scaled)
         simplex_tree = alpha_complex.create_simplex_tree()
         persistence = simplex_tree.persistence()
-        persistence_df = pd.DataFrame(persistence, columns=['dimension', 'persistence'])
-        return persistence_df
+        # persistence_df = pd.DataFrame(persistence, columns=['dimension', 'persistence'])
+        return persistence

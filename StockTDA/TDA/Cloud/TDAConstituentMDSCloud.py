@@ -1,4 +1,5 @@
-from StockTDA.TDA.TDAFrame import StockTDAFrame
+from StockTDA.TDA.Features.TDAFeatures import TDAFeatures
+from StockTDA.TDA.Cloud.TDACloud import StockTDACloud
 from StockTDA import config
 from StockTDA.data.data_prepare import INFO
 from StockTDA.utils import ygo
@@ -13,8 +14,8 @@ from sklearn.manifold import MDS
 from collections import deque
 from typing import List, Union, Optional, Tuple, Type
 
-class StockTDACorrMDSCloud(StockTDAFrame):
-    def __init__(self, window_size = 50):
+class StockTDACorrMDSCloud(StockTDACloud):
+    def __init__(self,features_list : List[TDAFeatures] , window_size = 50):
         """
         Initializes the StockTDACorrMDSCloud instance.
 
@@ -27,17 +28,18 @@ class StockTDACorrMDSCloud(StockTDAFrame):
         sliding_window: deque
             A deque (double-ended queue) to store a sliding window of factor data for the most recent `window_size` days.
         """
+        super().__init__(features_list)
         self.window_size = window_size
         # self.sliding_window = deque(maxlen=window_size)
         self.prepare_data()
-        super().__init__()
+        
     
     
     def compute_persistence(self, date: str) -> Union[pd.DataFrame,None]:
         """
         Computes the persistence diagram for a given date based on the sliding window of stock constituent factor data.
 
-        This method inherits from the abstract method `compute_persistence` defined in the parent class `StockTDAFrame`.
+        This method inherits from the abstract method `compute_persistence` defined in the parent class `StockTDACloud`.
         It performs the following steps:
 
         1. Load stock constituent factor data for the specified date.
@@ -55,21 +57,25 @@ class StockTDACorrMDSCloud(StockTDAFrame):
             The date for which the persistence diagram is being computed. The date is typically in 'YYYY-MM-DD' format.
 
         Returns:
-        pd.DataFrame or None
-            A DataFrame containing the persistence diagram with columns:
-            - 'dimension': The dimension of the topological feature (e.g., 1 for connected components, 2 for loops, etc.).
-            - 'persistence': The birth and death times of each topological feature, stored as tuples (birth, death).
-            If the sliding window does not contain enough data, returns `None`.
-
-        Example of returned DataFrame:
-        -------------------------------------
-        |   'dimension' |   'persistence'   |
-        -------------------------------------
-        |   0           |   (0.0121, 0.2324)|
-        |   0           |   (0.0135, 0.3134)|
-        |   1           |   (0.0159, 0.4386)|
-        |   1           |   (0.5421, 0.6529)|
-        -------------------------------------
+        List
+            A list representing the persistence diagram of topological features.
+            
+            Each entry in the list corresponds to a topological feature and contains:
+            - 'dimension': The dimension of the topological feature (e.g., 0 for connected components, 1 for loops, 2 for voids, etc.).
+            - 'persistence': A tuple representing the birth and death times (birth, death) of the topological feature, which indicates when the feature appears and disappears in the filtration process.
+            
+            The persistence diagram captures the shape characteristics of the data at different scales.
+            
+            Example:
+            
+            [   ['dimension',  'persistence'] ]
+            [
+            [   0           ,   (0.0121, 0.2324)],  # 0D feature: connected component
+            [   0           ,   (0.0135, 0.3134)],  # 0D feature: connected component
+            [   0           ,   (0.0141, 0.3325)],  # 0D feature: connected component
+            [   1           ,   (0.0159, 0.4386)],  # 1D feature: loop
+            [   1           ,   (0.5421, 0.6529)],  # 1D feature: loop
+            ]
         """
 
         date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
@@ -95,9 +101,9 @@ class StockTDACorrMDSCloud(StockTDAFrame):
 
         # Step 8: Compute persistence diagram
         persistence = simplex_tree.persistence()
-        persistence_df = pd.DataFrame(persistence, columns=['dimension', 'persistence'])
+        # persistence_df = pd.DataFrame(persistence, columns=['dimension', 'persistence'])
 
-        return persistence_df
+        return persistence
     
 
     def prepare_data(self):
