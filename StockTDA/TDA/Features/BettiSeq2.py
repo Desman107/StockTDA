@@ -8,7 +8,7 @@ class BettiSeq2(TDAFeatures):
     def __init__(self):
         super().__init__()
 
-    def compute_TDAFeatures(self, persistence : List[Tuple[float, float]], n_bins: int, right_boundary: float, step: float) ->np.ndarray:
+    def compute_TDAFeatures(self, persistence : List[Tuple[float, float]], right_boundary: float,n_bins: int) ->np.ndarray:
         """
         Compute the Betti number sequence.
         
@@ -19,6 +19,7 @@ class BettiSeq2(TDAFeatures):
         Returns:
         List or np.ndarray: The Betti number sequence over the given filtration.
         """
+        
         # 修改该位置
         def modify_tree(tr: List[int],pos: int,ed: int,c: int): 
             i = pos 
@@ -32,7 +33,7 @@ class BettiSeq2(TDAFeatures):
                 res += tr[i] 
                 i -= (i&-i) 
             return res 
-        
+        step = right_boundary/n_bins 
         Len = right_boundary/n_bins # 浮标区间的长度
         L, point_list, mp, map_val = [], [], {}, 1 
         for birth, death in persistence:
@@ -85,15 +86,18 @@ class BettiSeq2(TDAFeatures):
                 ml+=1 
                 modify_tree(tr2,mp[L[ml][0]],map_val,-1) 
                 modify_tree(tr1,mp[L[ml][1]],map_val,1) 
-            # print(L[:ml+1],L[ml+1:]) 
-            # break 
             ans.append(Calc(l,r))   
             buoy += step
         return np.array(ans) 
     
-    def compute_TDAFeatures_all_dim(self, persistence_all_dim: List[Tuple[int, Tuple[float, float]]], n_bins: int, right_boundary: float, step: float) -> List[np.ndarray]:
-        results = []
-        for dim, persistence in persistence_all_dim:
-            result = self.compute_TDAFeatures(persistence, n_bins, right_boundary, step)
-            results.append(result)
-        return results
+    
+    def compute_TDAFeatures_all_dim(self, persistence_all_dim):
+        vectoralize_features = []
+        r = max([item[1][1] for item in persistence_all_dim if ( item[1][1] != np.inf)])
+        n_bins = 26
+        for dim in range(config.max_dim + 1):
+            persistence = [(item[1][0], item[1][1]) for item in persistence_all_dim if (item[0] == dim and item[1][1] != np.inf)]
+            bettiseq = self.compute_TDAFeatures(persistence, r, n_bins=n_bins)
+            for betti in bettiseq[:n_bins-1]:
+                vectoralize_features.append(betti)
+        return vectoralize_features
