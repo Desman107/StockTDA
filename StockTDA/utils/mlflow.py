@@ -51,7 +51,7 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
 
         mlflow.log_param("model_name", model)
         mlflow.log_param('cloud_type',cloud_type)
-
+        mlflow.log_param("FeaComb", name)        
         for metric, value in record_dict.items():
             logging.log(logging.INFO,f'metric : {metric}, value : {value}')
             mlflow.log_metric(metric, value)
