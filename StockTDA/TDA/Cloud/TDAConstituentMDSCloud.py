@@ -15,7 +15,7 @@ from collections import deque
 from typing import List, Union, Optional, Tuple, Type
 
 class StockTDACorrMDSCloud(StockTDACloud):
-    def __init__(self,features_list : List[TDAFeatures] , window_size = 50):
+    def __init__(self,features_list : List[TDAFeatures] , window_size = 20):
         """
         Initializes the StockTDACorrMDSCloud instance.
 
@@ -33,9 +33,15 @@ class StockTDACorrMDSCloud(StockTDACloud):
         # self.sliding_window = deque(maxlen=window_size)
         self.prepare_data()
         
+    def get_date_data(self, date : str) -> Union[pd.DataFrame,None]:
+        date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
+        if date_loc < self.window_size:return
+        loc_20 = date_loc - self.window_size
+        date_20 = INFO.TradingDay[loc_20]
+        win_df = self.csi300.loc[date_20:date]
+        return win_df
     
-    
-    def compute_persistence(self, date: str) -> Union[pd.DataFrame,None]:
+    def compute_persistence(self, df : pd.DataFrame) -> Union[pd.DataFrame,None]:
         """
         Computes the persistence diagram for a given date based on the sliding window of stock constituent factor data.
 
@@ -78,12 +84,13 @@ class StockTDACorrMDSCloud(StockTDACloud):
             ]
         """
 
-        date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
-        if date_loc < self.window_size:return
-        loc_20 = date_loc - self.window_size
-        date_20 = INFO.TradingDay[loc_20]
-        win_df = self.csi300.loc[date_20:date]
-        win_df = win_df.unstack()
+        # date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
+        # if date_loc < self.window_size:return
+        # loc_20 = date_loc - self.window_size
+        # date_20 = INFO.TradingDay[loc_20]
+        # win_df = self.csi300.loc[date_20:date]
+
+        win_df = df.unstack()
 
         # Cleaning data by removing columns with more than 30% missing values
         missing_ratio = win_df.isna().sum() / len(win_df)
@@ -108,7 +115,7 @@ class StockTDACorrMDSCloud(StockTDACloud):
 
     def prepare_data(self):
         def load(date):
-            path = os.path.join(config.factor_data_save_path, date)
+            path = os.path.join(config.constitute_return_save_path, date)
             df = joblib.load(path)
             df['date'] = date
             return df[['past_1D','date']]

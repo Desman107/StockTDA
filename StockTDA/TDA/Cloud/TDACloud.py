@@ -16,7 +16,7 @@ import numpy as np
 import warnings
 
 from StockTDA.TDA.Features.TDAFeatures import persistent_entropy, landscape, betti_sequence
-from StockTDA.data.data_prepare import INFO, prepare_formulaic_factor, get_quote_df
+from StockTDA.data.data_prepare import INFO, get_quote_df
 from StockTDA.utils import ygo
 from StockTDA.TDA.Features.TDAFeatures import TDAFeatures
 class StockTDACloud(metaclass=ABCMeta):
@@ -24,9 +24,12 @@ class StockTDACloud(metaclass=ABCMeta):
         self.features_list = features_list
         self.quote_df = get_quote_df()
 
+    @abstractmethod
+    def get_date_data(self, date : str) -> pd.DataFrame: ...
+
 
     @abstractmethod
-    def compute_persistence(self, date : str) -> List[Tuple[int,Tuple[float,float]]]:
+    def compute_persistence(self, df : pd.DataFrame) -> List[Tuple[int,Tuple[float,float]]]:
         """
             Abstract method to compute the persistence diagram for a given date.
 
@@ -64,9 +67,11 @@ class StockTDACloud(metaclass=ABCMeta):
 
 
     def compute_persistence_and_features(self, date : str) ->  Tuple[Union[str,List[float]]]:
-        persistence = self.compute_persistence(date)
+        df = self.get_date_data(date)
+        persistence = self.compute_persistence(df)
         if persistence is None:
             return
+        
         features_list = self.compute_TDA_Features(persistence,date)
         return features_list
     

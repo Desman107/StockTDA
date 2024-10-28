@@ -53,7 +53,8 @@ def get_index_comp(code : str,date : str) -> pd.DataFrame:
     return joblib.load(os.path.join(index_comp_path,d))
 
 
-def prepare_formulaic_factor():
+# def prepare_formulaic_factor(source_name,target_path):
+def prepare_data(source_name,target_path):
     """
     Prepares formulaic factor data.
 
@@ -72,8 +73,9 @@ def prepare_formulaic_factor():
     Returns:
     None
     """
-    path = os.path.join(config.data_path,'factor','all_avail_df')
+    path = os.path.join(config.data_path,'factor',source_name)
     df = joblib.load(path)
+    # df = pd.read_parquet(path)
     def dump(date):
         temp_df = df.loc[date]
         joblib.dump(temp_df,os.path.join(config.temp_save_path,str(date)))
@@ -95,15 +97,19 @@ def prepare_formulaic_factor():
     df = pd.concat(result)
     df.reset_index(inplace=True)
     df.set_index(['date','SecuCode'],inplace=True)
-    df.drop(columns = 'Lv1',inplace=True)
+    # df.drop(columns = 'Lv1',inplace=True)
     def dump(date):
         temp_df = df.loc[date]
         temp_df.dropna(inplace = True)
-        joblib.dump(temp_df,os.path.join(config.factor_data_save_path,str(date)))
+        joblib.dump(temp_df,os.path.join(target_path,str(date)))
     with ygo.ThreadPool() as pool:
         for date in INFO.TradingDay:
             pool.submit(dump,date)
         pool.do()
+
+def prepare_all_data():
+    prepare_data('all_avail_df',config.factor_data_save_path)
+    prepare_data('past_return', config.constitute_return_save_path)
 
 
 def get_quote_df():
@@ -133,3 +139,5 @@ def get_quote_df():
     quote_df['return_t-20'] = quote_df['return'].shift(20)
     quote_df['return_t-60'] = quote_df['return'].shift(60)
     return quote_df
+
+

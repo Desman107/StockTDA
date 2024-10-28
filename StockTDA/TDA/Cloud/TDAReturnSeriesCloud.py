@@ -14,8 +14,12 @@ class StockTDAReturnSeriesCloud(StockTDACloud):
     def __init__(self,features_list : List[TDAFeatures]):
         super().__init__(features_list)
     
+    def get_date_data(self, date :str) -> pd.DataFrame:
+        df = self.quote_df.loc[:date].tail(120)
+        df = df[['return','return_t-5','return_t-20','return_t-60']]
+        return df 
     
-    def compute_persistence(self, date: str) -> Union[pd.DataFrame,None]:
+    def compute_persistence(self, df: pd.DataFrame) -> Union[pd.DataFrame,None]:
         """
         Computes the persistence diagram for a given date based on the return series of stock constituent data.
 
@@ -56,8 +60,8 @@ class StockTDAReturnSeriesCloud(StockTDACloud):
             [   1           ,   (0.5421, 0.6529)],  # 1D feature: loop
             ]
         """
-        df = self.quote_df.loc[:date].tail(120)
-        df = df[['return','return_t-5','return_t-20','return_t-60']]
+        # df = self.quote_df.loc[:date].tail(120)
+        # df = df[['return','return_t-5','return_t-20','return_t-60']]
         if df.isna().any().any():return
         scaler = StandardScaler()
         df_scaled = scaler.fit_transform(df)
