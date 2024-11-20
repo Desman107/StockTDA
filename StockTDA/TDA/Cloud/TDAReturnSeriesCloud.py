@@ -11,8 +11,8 @@ from sklearn.decomposition import KernelPCA
 from typing import List, Union, Optional, Tuple, Type
 
 class StockTDAReturnSeriesCloud(StockTDACloud):
-    def __init__(self,features_list : List[TDAFeatures]):
-        super().__init__(features_list)
+    def __init__(self,features_list : List[TDAFeatures],index_type = 'CSI300'):
+        super().__init__(features_list,index_type)
     
     def get_date_data(self, date :str) -> pd.DataFrame:
         df = self.quote_df.loc[:date].tail(120)

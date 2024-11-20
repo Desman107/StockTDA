@@ -20,9 +20,10 @@ from StockTDA.data.data_prepare import INFO, get_quote_df
 from StockTDA.utils import ygo
 from StockTDA.TDA.Features.TDAFeatures import TDAFeatures
 class StockTDACloud(metaclass=ABCMeta):
-    def __init__(self,features_list : List[TDAFeatures]):
+    def __init__(self,features_list : List[TDAFeatures],index_type = 'CSI300'):
         self.features_list = features_list
-        self.quote_df = get_quote_df()
+        self.quote_df = get_quote_df(index_type)
+        
 
     @abstractmethod
     def get_date_data(self, date : str) -> pd.DataFrame: ...
@@ -68,10 +69,11 @@ class StockTDACloud(metaclass=ABCMeta):
 
     def compute_persistence_and_features(self, date : str) ->  Tuple[Union[str,List[float]]]:
         df = self.get_date_data(date)
+        if df is None : return
         persistence = self.compute_persistence(df)
         if persistence is None:
             return
-        
+        # persistence = filter_persistence(persistence)
         features_list = self.compute_TDA_Features(persistence,date)
         return features_list
     
@@ -88,4 +90,28 @@ class StockTDACloud(metaclass=ABCMeta):
         TDA_df.set_index('date',inplace=True)
         self.all_df = pd.merge(self.quote_df,TDA_df,how='left',left_index=True,right_index=True)
         self.all_df.dropna(inplace=True)
+
+
+
+def filter_persistence(persistence):
+    data = np.array([[item[0], item[1][0], item[1][1]] for item in persistence])
+    unique_values = np.unique(data[:, 0])
+    filtered_data_by_group = []
+    for value in unique_values:
+        # Select rows where Column 0 is equal to the current unique value
+        group_data = data[data[:, 0] == value]
         
+        # Calculate the difference for this group
+        group_diff_column = group_data[:, 2] - group_data[:, 1]
+        
+        # Determine the top 20% threshold for this group
+        group_threshold = np.percentile(group_diff_column, 20)
+        
+        # Filter rows within the top 20% for this group
+        filtered_group_data = group_data[group_diff_column >= group_threshold]
+        filtered_data_by_group.append(filtered_group_data)
+
+    # Concatenate all filtered groups into a single array
+    filtered_data_combined = np.vstack(filtered_data_by_group)
+    
+    return [(item[0], (item[1], item[2])) for item in filtered_data_combined]

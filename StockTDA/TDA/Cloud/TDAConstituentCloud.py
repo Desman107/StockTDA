@@ -75,7 +75,7 @@ class StockTDAConstituentCloud(StockTDACloud):
         # kpca_df = pd.DataFrame(kpca_results, columns=['kPCA_1', 'kPCA_2', 'kPCA_3', 'kPCA_4'])
     
         # Step 5: Create an Alpha Complex from the Kernel PCA results and compute the persistence diagram
-        alpha_complex = gd.AlphaComplex(kpca_results.values)
+        alpha_complex = gd.AlphaComplex(kpca_results)
         simplex_tree = alpha_complex.create_simplex_tree()
         persistence = simplex_tree.persistence()
         
