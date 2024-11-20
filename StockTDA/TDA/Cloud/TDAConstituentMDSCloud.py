@@ -15,7 +15,7 @@ from collections import deque
 from typing import List, Union, Optional, Tuple, Type
 
 class StockTDACorrMDSCloud(StockTDACloud):
-    def __init__(self,features_list : List[TDAFeatures] , window_size = 50):
+    def __init__(self,features_list : List[TDAFeatures] , window_size = 20,index_type = 'CSI300'):
         """
         Initializes the StockTDACorrMDSCloud instance.
 
@@ -28,14 +28,21 @@ class StockTDACorrMDSCloud(StockTDACloud):
         sliding_window: deque
             A deque (double-ended queue) to store a sliding window of factor data for the most recent `window_size` days.
         """
-        super().__init__(features_list)
+        super().__init__(features_list,index_type=index_type)
         self.window_size = window_size
         # self.sliding_window = deque(maxlen=window_size)
-        self.prepare_data()
+        self.prepare_data(index_type)
+
         
+    def get_date_data(self, date : str) -> Union[pd.DataFrame,None]:
+        date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
+        if date_loc < self.window_size:return
+        loc_20 = date_loc - self.window_size
+        date_20 = INFO.TradingDay[loc_20]
+        win_df = self.csi300.loc[date_20:date]
+        return win_df
     
-    
-    def compute_persistence(self, date: str) -> Union[pd.DataFrame,None]:
+    def compute_persistence(self, df : pd.DataFrame) -> Union[pd.DataFrame,None]:
         """
         Computes the persistence diagram for a given date based on the sliding window of stock constituent factor data.
 
@@ -78,12 +85,13 @@ class StockTDACorrMDSCloud(StockTDACloud):
             ]
         """
 
-        date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
-        if date_loc < self.window_size:return
-        loc_20 = date_loc - self.window_size
-        date_20 = INFO.TradingDay[loc_20]
-        win_df = self.csi300.loc[date_20:date]
-        win_df = win_df.unstack()
+        # date_loc = np.searchsorted(INFO.TradingDay, date, side='right')
+        # if date_loc < self.window_size:return
+        # loc_20 = date_loc - self.window_size
+        # date_20 = INFO.TradingDay[loc_20]
+        # win_df = self.csi300.loc[date_20:date]
+
+        win_df = df.unstack()
 
         # Cleaning data by removing columns with more than 30% missing values
         missing_ratio = win_df.isna().sum() / len(win_df)
@@ -106,18 +114,51 @@ class StockTDACorrMDSCloud(StockTDACloud):
         return persistence
     
 
-    def prepare_data(self):
-        def load(date):
-            path = os.path.join(config.factor_data_save_path, date)
-            df = joblib.load(path)
-            df['date'] = date
-            return df[['past_1D','date']]
-        with ygo.pool() as pool:
-            for date in INFO.TradingDay:
-                pool.submit(load,date)
-            result = pool.do()
-        result_df : pd.DataFrame = pd.concat(result)
-        result_df.reset_index(inplace=True)
-        result_df.set_index(['date','SecuCode'],inplace=True)
-        result_df.sort_index(inplace=True)
-        self.csi300 = result_df
+    def prepare_data(self,index_type):
+        if index_type == 'CSI300':
+            def load(date):
+                path = os.path.join(config.constitute_return_save_path, date)
+                df = joblib.load(path)
+                df['date'] = date
+                return df[['past_1D','date']]
+            with ygo.pool() as pool:
+                for date in INFO.TradingDay:
+                    pool.submit(load,date)
+                result = pool.do()
+            result_df : pd.DataFrame = pd.concat(result)
+            result_df.reset_index(inplace=True)
+            result_df.set_index(['date','SecuCode'],inplace=True)
+            result_df.sort_index(inplace=True)
+            self.csi300 = result_df
+        else:
+            self.csi300 = self.get_oversea_data(index_type)
+
+    def get_oversea_data(self,code):
+    
+        path = os.path.join(config.data_path,'oversea',f'{code}')
+        df_list = []
+        for file in os.listdir(path):
+            if 'com' in file:
+                df = pd.read_excel(os.path.join(path,file),sheet_name = '历史行情',header = 1).iloc[2:-2]
+                df.rename(columns = {'Unnamed: 0':'date'},inplace=True)
+                df.set_index('date',inplace=True)
+                df = df.stack()
+                df = pd.DataFrame(df,columns=[file.split('.')[0].split('_')[-1]])
+                df_list.append(df)
+                
+        df = pd.concat(df_list,axis=1)
+        df.index.set_names(['date', 'code'], inplace=True)
+        df.sort_index(inplace=True)
+        mask = df['prevclose'] == 0
+        df.loc[mask, 'prevclose'] = df['close'].shift(1)
+        df = df[~(df['close'] == 0)]
+        # df = df[['prevclose','close']]
+        # df.dropna(inplace=True)
+        # df.loc[mask, 'prevclose'] = df['close'].shift(1)
+        # df = df[~(df['prevclose'] == 0)]
+        df= pd.DataFrame(df['ptcchange'])
+        df[f'past_1D'] = df['ptcchange'] / 100
+        for delay in [5,10,20]:
+            df[f'past_{delay}D'] = df[f'past_1D'].shift(delay)
+        df.dropna(inplace=True)
+        return df

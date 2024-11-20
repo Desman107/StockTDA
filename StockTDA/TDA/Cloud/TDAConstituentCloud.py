@@ -14,8 +14,12 @@ class StockTDAConstituentCloud(StockTDACloud):
     def __init__(self,features_list : List[TDAFeatures]):
         super().__init__(features_list)
     
-    
-    def compute_persistence(self, date: str) -> pd.DataFrame:
+    def get_date_data(self, date):
+        df = joblib.load(os.path.join(config.factor_data_save_path, date))
+        return df
+
+
+    def compute_persistence(self, df: str) -> pd.DataFrame:
         """
         Computes the persistence diagram for a given date based on stock constituent factor data.
 
@@ -56,22 +60,22 @@ class StockTDAConstituentCloud(StockTDACloud):
             ]
         """
         # Step 1: Load factor data for the given date
-        df = joblib.load(os.path.join(config.factor_data_save_path, date))
-        df = df.drop(columns = '1D')  # Exclude the first non-feature column)
+        # df = joblib.load(os.path.join(config.factor_data_save_path, date))
+        # df = df.drop(columns = '1D')  # Exclude the first non-feature column)
 
         # Step 2: Standardize the data
         scaler = StandardScaler()
         df_scaled = scaler.fit_transform(df)
         
         # Step 3: Apply Kernel PCA to reduce dimensions to 4 components
-        kpca = KernelPCA(n_components=4, kernel='rbf')
+        kpca = KernelPCA(n_components=(config.max_dim+1), kernel='rbf')
         kpca_results = kpca.fit_transform(df_scaled)
 
         # Step 4: Convert the Kernel PCA results into a DataFrame
-        kpca_df = pd.DataFrame(kpca_results, columns=['kPCA_1', 'kPCA_2', 'kPCA_3', 'kPCA_4'])
-        
+        # kpca_df = pd.DataFrame(kpca_results, columns=['kPCA_1', 'kPCA_2', 'kPCA_3', 'kPCA_4'])
+    
         # Step 5: Create an Alpha Complex from the Kernel PCA results and compute the persistence diagram
-        alpha_complex = gd.AlphaComplex(kpca_df.values)
+        alpha_complex = gd.AlphaComplex(kpca_results)
         simplex_tree = alpha_complex.create_simplex_tree()
         persistence = simplex_tree.persistence()
         

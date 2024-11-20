@@ -37,6 +37,8 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
         'f1_score_1' : f1_score(result_df['label'], result_df['preds'],pos_label=1),
         'accuracy' : accuracy_score(result_df['label'], result_df['preds']),
         'cum_return': result_df['return'].cumsum().iloc[-1],
+        'cum_enquity': (result_df['return'] + 1).cumprod().iloc[-1],
+        'max_enquity': (result_df['return'] + 1).cumprod().cummax().max(),
         'max_drawdown': (((result_df['return'] + 1).cumprod().sub((result_df['return'] + 1).cumprod().cummax())) / (result_df['return'] + 1).cumprod().cummax()).min()
     }
     param_dict = { str(feature) : 0 for feature in all_features_list}
@@ -73,6 +75,12 @@ def record(result_df:pd.DataFrame, model_obj : BinaryClassificationModel, TDA_ob
             f.write(TDA_code)
         mlflow.log_artifact(os.path.join(config.temp_file_path,"TDA_code.py"))
 
+        for fea in TDA_obj.features_list:
+            fea_code = inspect.getsource(fea.__class__)
+            code_name = f'{str(fea)}.py'
+            with open(os.path.join(config.temp_file_path,code_name), "w") as f:
+                f.write(fea_code)
+            mlflow.log_artifact(os.path.join(config.temp_file_path,code_name))
 
 
 
@@ -130,3 +138,4 @@ def ui():
     subprocess.Popen(command, shell=True)
     time.sleep(5)  
     webbrowser.open('http://127.0.0.1:5003')
+ui()

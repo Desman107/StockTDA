@@ -7,7 +7,7 @@ from StockTDA.TDA.Features.PerEntropy import PerEntropy
 from StockTDA.TDA.Features.BettiSeq import BettiSeq
 from StockTDA.TDA.Features.BettiSeq3 import BettiSeq3
 from StockTDA.evluate.evaluator import StockTDAClassificationEvaluator
-from StockTDA.data.data_prepare import prepare_formulaic_factor
+from StockTDA.data.data_prepare import prepare_all_data
 
 
 from typing import List, Iterator, Tuple
@@ -21,7 +21,7 @@ def cartesian_product(
             yield (item1, item2)
 
 
-prepare_formulaic_factor() # for the first time, place run this function
+prepare_all_data() # for the first time, place run this function
 ClassificationModel1 = TDAXGBoost()
 ClassificationModel2 = TDALightGBM()
 ClassificationModel3 = TDALSTM()

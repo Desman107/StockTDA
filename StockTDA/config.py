@@ -47,11 +47,13 @@ temp_save_path = os.path.join(data_path, 'temp','temp_factor_data')
 factor_data_save_path = os.path.join(data_path,'temp',f'csi{index_code}_factor_data')
 mlflow_path = os.path.join(data_path,'mlruns')
 temp_file_path = os.path.join(data_path,'temp','temp_file')
+constitute_return_save_path = os.path.join(data_path,'temp',f'csi{index_code}_return_data')
 
 if not os.path.exists(temp_save_path) : os.makedirs(temp_save_path)
 if not os.path.exists(factor_data_save_path) : os.makedirs(factor_data_save_path)
 if not os.path.exists(mlflow_path) : os.makedirs(mlflow_path)
 if not os.path.exists(temp_file_path) : os.makedirs(temp_file_path)
+if not os.path.exists(constitute_return_save_path) : os.makedirs(constitute_return_save_path)
 
 
 #################################################################################
